@@ -1,0 +1,6 @@
+{
+  "name": "HA Wyoming Realtime Shim Repository",
+  "url": "https://github.com/escadesign/ha-wyoming-realtime-shim",
+  "maintainer": "escadesign",
+  "description": "Home Assistant add-on for OpenAI gpt-realtime voice integration via Wyoming protocol"
+}

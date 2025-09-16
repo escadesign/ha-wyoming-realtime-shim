@@ -1,0 +1,56 @@
+{
+  "name": "HA Wyoming Realtime Shim",
+  "version": "1.0.0",
+  "slug": "ha-wyoming-realtime-shim",
+  "description": "Wyoming-compatible voice service using OpenAI gpt-realtime for bidirectional audio conversations with Home Assistant",
+  "url": "https://github.com/escadesign/ha-wyoming-realtime-shim",
+  "arch": ["aarch64", "amd64"],
+  "startup": "application",
+  "boot": "auto",
+  "init": false,
+  "audio": true,
+  "ports": {
+    "10600/tcp": 10600,
+    "5000/tcp": 5000
+  },
+  "ports_description": {
+    "10600/tcp": "Wyoming STT protocol port",
+    "5000/tcp": "HTTP control API port"
+  },
+  "options": {
+    "openai_api_key": "",
+    "realtime_api_url": "wss://api.openai.com/v1/realtime",
+    "model": "gpt-realtime",
+    "audio_format": "pcm16",
+    "ha_url": "ws://homeassistant.local:8123/api/websocket",
+    "ha_token": "",
+    "allowed_domains": ["light", "switch", "climate"],
+    "entity_whitelist": [],
+    "confirm_high_risk_actions": true,
+    "enable_tts_mirror": false,
+    "tts_service": "tts.piper",
+    "tts_media_player": "",
+    "http_port": 5000,
+    "vad_enabled_default": false,
+    "session_silence_timeout_ms": 30000,
+    "session_max_duration_ms": 300000
+  },
+  "schema": {
+    "openai_api_key": "str",
+    "realtime_api_url": "url",
+    "model": "str",
+    "audio_format": "str",
+    "ha_url": "url",
+    "ha_token": "str",
+    "allowed_domains": ["str"],
+    "entity_whitelist": ["str"],
+    "confirm_high_risk_actions": "bool",
+    "enable_tts_mirror": "bool",
+    "tts_service": "str",
+    "tts_media_player": "str",
+    "http_port": "port",
+    "vad_enabled_default": "bool",
+    "session_silence_timeout_ms": "int(1000,600000)",
+    "session_max_duration_ms": "int(10000,1800000)"
+  }
+}
