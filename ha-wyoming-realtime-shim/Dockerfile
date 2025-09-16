@@ -7,6 +7,11 @@ RUN apk add --no-cache \
     pulseaudio \
     pulseaudio-utils \
     curl \
+    python3 \
+    make \
+    g++ \
+    linux-headers \
+    alsa-lib-dev \
     && rm -rf /var/cache/apk/*
 
 # Set working directory
