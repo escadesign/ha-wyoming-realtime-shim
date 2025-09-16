@@ -1,6 +1,6 @@
 {
   "name": "ha-wyoming-realtime-shim",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Wyoming-compatible voice service using OpenAI gpt-realtime for Home Assistant",
   "main": "dist/index.js",
   "scripts": {

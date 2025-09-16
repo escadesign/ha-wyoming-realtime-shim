@@ -1,6 +1,6 @@
 {
   "name": "HA Wyoming Realtime Shim",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "slug": "ha-wyoming-realtime-shim",
   "description": "Wyoming-compatible voice service using OpenAI gpt-realtime for bidirectional audio conversations with Home Assistant",
   "url": "https://github.com/escadesign/ha-wyoming-realtime-shim",

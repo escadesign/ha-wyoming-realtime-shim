@@ -18,10 +18,10 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy package files first for better Docker layer caching
-COPY package*.json ./
+COPY package.json ./
 COPY tsconfig.json ./
 
-# Install all dependencies (including dev for TypeScript compilation)
+# Install dependencies (without package-lock.json to avoid cached speaker)
 RUN npm install && npm cache clean --force
 
 # Copy source code
