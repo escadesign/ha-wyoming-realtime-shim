@@ -61,10 +61,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourorg/ha-wyoming-realtime-shim.git"
+    "url": "https://github.com/escadesign/ha-wyoming-realtime-shim.git"
   },
   "bugs": {
-    "url": "https://github.com/yourorg/ha-wyoming-realtime-shim/issues"
+    "url": "https://github.com/escadesign/ha-wyoming-realtime-shim/issues"
   },
-  "homepage": "https://github.com/yourorg/ha-wyoming-realtime-shim#readme"
+  "homepage": "https://github.com/escadesign/ha-wyoming-realtime-shim#readme"
 }

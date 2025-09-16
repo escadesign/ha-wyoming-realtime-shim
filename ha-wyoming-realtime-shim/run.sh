@@ -58,4 +58,4 @@ cd /app
 
 # Start the application
 bashio::log.info "Starting Node.js application..."
-exec node index.js
+exec node dist/index.js
