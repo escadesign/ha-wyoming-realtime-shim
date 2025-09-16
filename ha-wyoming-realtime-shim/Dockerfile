@@ -1,8 +1,11 @@
-# Single-stage build for HA Wyoming Realtime Shim
-FROM node:18-alpine
+# Use Home Assistant base image
+ARG BUILD_FROM
+FROM $BUILD_FROM
 
-# Install audio dependencies for HA OS
+# Install Node.js and audio dependencies for HA OS
 RUN apk add --no-cache \
+    nodejs \
+    npm \
     alsa-utils \
     pulseaudio \
     pulseaudio-utils \
@@ -19,6 +22,9 @@ COPY tsconfig.json ./
 # Install dependencies (without package-lock.json to avoid cached speaker)
 RUN npm install && npm cache clean --force
 
+# Install TypeScript globally for building
+RUN npm install -g typescript
+
 # Copy source code
 COPY src/ ./src/
 
@@ -28,16 +34,6 @@ RUN npm run build
 # Remove dev dependencies after build
 RUN npm prune --production
 
-# Copy run script to standard location
+# Copy run script
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
-
-# Expose ports
-EXPOSE 10600 5000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/health || exit 1
-
-# Run the application
-CMD ["/run.sh"]
