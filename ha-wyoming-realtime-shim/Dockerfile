@@ -1,17 +1,12 @@
 # Single-stage build for HA Wyoming Realtime Shim
 FROM node:18-alpine
 
-# Install audio and build dependencies for HA OS
+# Install audio dependencies for HA OS
 RUN apk add --no-cache \
     alsa-utils \
     pulseaudio \
     pulseaudio-utils \
     curl \
-    python3 \
-    make \
-    g++ \
-    linux-headers \
-    alsa-lib-dev \
     && rm -rf /var/cache/apk/*
 
 # Set working directory
@@ -33,8 +28,8 @@ RUN npm run build
 # Remove dev dependencies after build
 RUN npm prune --production
 
-# Copy run script
-COPY run.sh /
+# Copy run script to standard location
+COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
 # Expose ports
