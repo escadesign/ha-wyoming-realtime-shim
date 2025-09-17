@@ -1,0 +1,203 @@
+# ============================================================================
+# Home Assistant Voice Assistant Integration
+# Complete configuration for HA Wyoming Realtime Shim
+# ============================================================================
+
+# REST Commands for Voice Control
+rest_command:
+  # Main voice assistant (continuous conversation)
+  start_voice_assistant:
+    url: "http://localhost:5000/start_voice_assistant"
+    method: post
+    headers:
+      content-type: application/json
+    timeout: 5
+    
+  # Quick single command
+  voice_command:
+    url: "http://localhost:5000/voice_command" 
+    method: post
+    headers:
+      content-type: application/json
+    timeout: 5
+    
+  # Stop any active session
+  stop_voice_session:
+    url: "http://localhost:5000/stop_session"
+    method: post
+    headers:
+      content-type: application/json
+    timeout: 5
+    
+  # Toggle Push-to-Talk
+  toggle_ptt:
+    url: "http://localhost:5000/start_ptt"
+    method: post
+    headers:
+      content-type: application/json
+    timeout: 5
+    
+  # Toggle Voice Activity Detection
+  toggle_vad:
+    url: "http://localhost:5000/toggle_vad"
+    method: post
+    headers:
+      content-type: application/json
+    timeout: 5
+
+# REST Sensor for Voice Assistant Status
+rest:
+  - resource: "http://localhost:5000/status"
+    name: "Voice Assistant Status"
+    scan_interval: 5
+    timeout: 3
+    json_attributes:
+      - current_session
+      - vad_enabled
+    value_template: >
+      {% if value_json.current_session %}
+        {{ value_json.current_session.mode | title }} ({{ value_json.current_session.status }})
+      {% elif value_json.vad_enabled %}
+        VAD Enabled
+      {% else %}
+        Ready
+      {% endif %}
+
+# Scripts for Easy Integration
+script:
+  # Main Voice Assistant
+  voice_assistant:
+    alias: "🎙️ Voice Assistant"
+    icon: mdi:microphone
+    sequence:
+      - service: rest_command.start_voice_assistant
+      - delay: "00:00:01"
+      - service: notify.persistent_notification
+        data:
+          title: "🎙️ Voice Assistant"
+          message: "Ready for conversation - start speaking!"
+          notification_id: "voice_assistant_ready"
+    mode: single
+    
+  # Quick Command
+  voice_command:
+    alias: "⚡ Quick Voice Command"
+    icon: mdi:microphone-message
+    sequence:
+      - service: rest_command.voice_command
+      - delay: "00:00:01"
+      - service: notify.persistent_notification
+        data:
+          title: "⚡ Quick Command"
+          message: "Speak your command now (10s timeout)"
+          notification_id: "voice_command_ready"
+    mode: single
+    
+  # Stop Voice
+  stop_voice:
+    alias: "🛑 Stop Voice Session"
+    icon: mdi:microphone-off
+    sequence:
+      - service: rest_command.stop_voice_session
+      - service: notify.persistent_notification
+        data:
+          title: "🛑 Voice Session"
+          message: "Session ended"
+          notification_id: "voice_session_ended"
+    mode: single
+    
+  # Toggle PTT
+  voice_ptt:
+    alias: "📱 Push-to-Talk"
+    icon: mdi:microphone-variant
+    sequence:
+      - service: rest_command.toggle_ptt
+    mode: single
+    
+  # Toggle VAD
+  voice_vad:
+    alias: "🔊 Voice Detection"
+    icon: mdi:microphone-plus
+    sequence:
+      - service: rest_command.toggle_vad
+    mode: single
+
+# Input Boolean for Voice Assistant Control
+input_boolean:
+  voice_assistant_enabled:
+    name: "Voice Assistant Enabled"
+    icon: mdi:microphone
+
+# Automations
+automation:
+  # Auto-start voice assistant when enabled
+  - alias: "Voice Assistant Auto Start"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.voice_assistant_enabled
+        to: 'on'
+    action:
+      - service: script.voice_assistant
+    mode: single
+    
+  # Auto-stop when disabled
+  - alias: "Voice Assistant Auto Stop"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.voice_assistant_enabled
+        to: 'off'
+    action:
+      - service: script.stop_voice
+    mode: single
+    
+  # Status notification when session ends
+  - alias: "Voice Session Status Update"
+    trigger:
+      - platform: state
+        entity_id: sensor.voice_assistant_status
+        to: 'Ready'
+    action:
+      - service: notify.persistent_notification
+        data:
+          title: "🎙️ Voice Assistant"
+          message: "Session completed - ready for new commands"
+          notification_id: "voice_status_update"
+    mode: single
+
+# Template Sensors
+template:
+  - sensor:
+      - name: "Voice Assistant Session"
+        state: >
+          {% set status = state_attr('sensor.voice_assistant_status', 'current_session') %}
+          {% if status %}
+            {{ status.mode | title }}
+          {% else %}
+            No Session
+          {% endif %}
+        attributes:
+          session_id: >
+            {% set status = state_attr('sensor.voice_assistant_status', 'current_session') %}
+            {{ status.session_id if status else 'none' }}
+          start_time: >
+            {% set status = state_attr('sensor.voice_assistant_status', 'current_session') %}
+            {{ status.timestamp if status else 'none' }}
+            
+      - name: "Voice Assistant Mode"
+        state: >
+          {% set vad = state_attr('sensor.voice_assistant_status', 'vad_enabled') %}
+          {% set session = state_attr('sensor.voice_assistant_status', 'current_session') %}
+          {% if session %}
+            Active ({{ session.mode }})
+          {% elif vad %}
+            VAD Ready
+          {% else %}
+            Manual
+          {% endif %}
+        icon: >
+          {% set session = state_attr('sensor.voice_assistant_status', 'current_session') %}
+          {% if session %}
+            mdi:microphone
+          {% else %}
+            mdi:microphone-off
+          {% endif %}

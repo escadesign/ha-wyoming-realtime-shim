@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface SessionState {
   sessionId: string;
-  mode: 'ptt' | 'vad';
+  mode: 'ptt' | 'vad' | 'voice_assistant' | 'command';
   status: 'active' | 'ended';
   startTime: Date;
 }
@@ -189,6 +189,126 @@ export function createControlAPI(): express.Application {
     return res.json(response);
   });
 
+  // Voice Assistant quick start endpoint
+  app.post('/start_voice_assistant', (_req: Request, res: Response) => {
+    try {
+      if (currentSession?.status === 'active') {
+        return res.status(409).json({
+          error: 'Session already active',
+          session_id: currentSession.sessionId,
+          mode: currentSession.mode,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      currentSession = {
+        sessionId: uuidv4(),
+        mode: 'voice_assistant',
+        status: 'active',
+        startTime: new Date()
+      };
+
+      logger.info('Voice assistant session started', {
+        session_id: currentSession.sessionId
+      });
+
+      return res.json({
+        success: true,
+        message: 'Voice assistant ready - start speaking!',
+        session_id: currentSession.sessionId,
+        mode: 'voice_assistant',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to start voice assistant', { error: errorMessage });
+      return res.status(500).json({ 
+        error: 'Failed to start voice assistant',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  // Quick voice command endpoint (one-shot)
+  app.post('/voice_command', (_req: Request, res: Response) => {
+    try {
+      if (currentSession?.status === 'active') {
+        return res.status(409).json({
+          error: 'Session already active',
+          session_id: currentSession.sessionId,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      currentSession = {
+        sessionId: uuidv4(),
+        mode: 'command',
+        status: 'active',
+        startTime: new Date()
+      };
+
+      logger.info('Quick voice command session started', { 
+        session_id: currentSession.sessionId 
+      });
+
+      return res.json({
+        success: true,
+        message: 'Ready for voice command - speak now!',
+        session_id: currentSession.sessionId,
+        mode: 'command',
+        timeout_ms: 10000,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to start voice command', { error: errorMessage });
+      return res.status(500).json({ 
+        error: 'Failed to start voice command',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  // Stop any active session
+  app.post('/stop_session', (_req: Request, res: Response) => {
+    try {
+      if (!currentSession || currentSession.status === 'ended') {
+        return res.status(404).json({
+          error: 'No active session',
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      const sessionId = currentSession.sessionId;
+      const mode = currentSession.mode;
+      
+      currentSession.status = 'ended';
+      
+      logger.info('Session stopped', { 
+        session_id: sessionId,
+        mode: mode
+      });
+
+      const response = {
+        success: true,
+        message: 'Session ended',
+        session_id: sessionId,
+        mode: mode,
+        timestamp: new Date().toISOString(),
+      };
+
+      currentSession = null;
+      return res.json(response);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to stop session', { error: errorMessage });
+      return res.status(500).json({ 
+        error: 'Failed to stop session',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
   app.get('/health', (_req: Request, res: Response) => {
     try {
       const memoryUsage = process.memoryUsage();
@@ -196,6 +316,7 @@ export function createControlAPI(): express.Application {
 
       const healthStatus = {
         status: 'healthy',
+        version: '1.0.5',
         timestamp: new Date().toISOString(),
         checks: {
           audio_devices: true,
@@ -222,6 +343,7 @@ export function createControlAPI(): express.Application {
       logger.error('Health check failed', { error: errorMessage });
       return res.status(503).json({
         status: 'unhealthy',
+        version: '1.0.5',
         timestamp: new Date().toISOString(),
         checks: {
           audio_devices: false,

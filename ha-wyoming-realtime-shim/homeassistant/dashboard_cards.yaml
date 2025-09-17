@@ -1,0 +1,199 @@
+# ============================================================================
+# Lovelace Dashboard Cards for Voice Assistant
+# Copy these into your dashboard YAML or use via UI card editor
+# ============================================================================
+
+# Main Voice Assistant Control Card
+- type: entities
+  title: "🎙️ Voice Assistant"
+  show_header_toggle: false
+  entities:
+    - entity: input_boolean.voice_assistant_enabled
+      name: "Auto Voice Assistant"
+      icon: mdi:microphone-settings
+    - entity: sensor.voice_assistant_status
+      name: "Status"
+      icon: mdi:information
+    - entity: script.voice_assistant
+      name: "Start Conversation"
+      icon: mdi:microphone
+    - entity: script.voice_command  
+      name: "Quick Command"
+      icon: mdi:microphone-message
+    - entity: script.stop_voice
+      name: "Stop Session"
+      icon: mdi:microphone-off
+  state_color: true
+
+# Voice Control Buttons Card
+- type: horizontal-stack
+  cards:
+    - type: button
+      entity: script.voice_assistant
+      name: "🎙️ Voice Chat"
+      icon: mdi:microphone
+      tap_action:
+        action: call-service
+        service: script.voice_assistant
+      hold_action:
+        action: more-info
+      card_mod:
+        style: |
+          ha-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          }
+    
+    - type: button
+      entity: script.voice_command
+      name: "⚡ Quick Cmd"
+      icon: mdi:microphone-message
+      tap_action:
+        action: call-service
+        service: script.voice_command
+      card_mod:
+        style: |
+          ha-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+          }
+    
+    - type: button
+      entity: script.voice_ptt
+      name: "📱 Push-Talk"
+      icon: mdi:microphone-variant
+      tap_action:
+        action: call-service
+        service: script.voice_ptt
+      card_mod:
+        style: |
+          ha-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+          }
+
+# Voice Assistant Status Card
+- type: glance
+  title: "🎯 Voice Status"
+  entities:
+    - entity: sensor.voice_assistant_session
+      name: "Session"
+      icon: mdi:chat-processing
+    - entity: sensor.voice_assistant_mode
+      name: "Mode"
+      icon: mdi:microphone-settings
+    - entity: sensor.voice_assistant_status
+      name: "Status"
+      icon: mdi:information
+  state_color: true
+
+# Advanced Voice Control Card
+- type: vertical-stack
+  cards:
+    - type: markdown
+      content: |
+        ## 🎙️ Advanced Voice Control
+        
+        **Current Status:** {{ states('sensor.voice_assistant_status') }}
+        
+        **Session ID:** {{ state_attr('sensor.voice_assistant_session', 'session_id') }}
+        
+        {% if state_attr('sensor.voice_assistant_status', 'vad_enabled') %}
+        🔊 **Voice Detection:** Active
+        {% else %}
+        🔇 **Voice Detection:** Manual  
+        {% endif %}
+        
+    - type: entities
+      entities:
+        - entity: script.voice_vad
+          name: "Toggle Voice Detection"
+          icon: mdi:microphone-plus
+        - entity: script.stop_voice
+          name: "Emergency Stop"
+          icon: mdi:emergency-brake
+        - type: divider
+        - entity: sensor.voice_assistant_status
+          name: "Detailed Status"
+          icon: mdi:information-outline
+
+# Mini Voice Widget (for compact spaces)
+- type: custom:button-card
+  entity: script.voice_assistant
+  name: "Voice"
+  icon: mdi:microphone
+  color_type: card
+  color: rgb(102, 126, 234)
+  size: 30%
+  styles:
+    card:
+      - border-radius: 15px
+      - box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4)
+    name:
+      - color: white
+      - font-weight: bold
+    icon:
+      - color: white
+  tap_action:
+    action: call-service
+    service: script.voice_assistant
+  hold_action:
+    action: call-service
+    service: script.voice_command
+
+# Voice Assistant Health Card
+- type: entities
+  title: "🔧 Voice System Health"
+  show_header_toggle: false
+  entities:
+    - type: custom:auto-entities
+      card:
+        type: entities
+      filter:
+        include:
+          - entity_id: "sensor.*voice*"
+          - entity_id: "binary_sensor.*voice*"
+        exclude:
+          - state: "unavailable"
+      sort:
+        method: name
+
+# Picture Elements Card (for visual layout)
+- type: picture-elements
+  image: /local/voice_assistant_bg.jpg  # Add your background image
+  elements:
+    - type: state-icon
+      entity: sensor.voice_assistant_status
+      style:
+        top: 20%
+        left: 50%
+        color: white
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5))
+    
+    - type: service-button
+      title: "🎙️ Start Voice"
+      service: script.voice_assistant
+      style:
+        top: 60%
+        left: 30%
+        color: white
+        background-color: rgba(102, 126, 234, 0.8)
+        border-radius: 15px
+        padding: 10px 20px
+        
+    - type: service-button
+      title: "⚡ Quick Cmd"
+      service: script.voice_command
+      style:
+        top: 60%
+        left: 70%
+        color: white
+        background-color: rgba(240, 147, 251, 0.8)
+        border-radius: 15px
+        padding: 10px 20px
